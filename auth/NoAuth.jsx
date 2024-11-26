@@ -55,7 +55,13 @@ export default function NoAuth() {
         <Stack.Screen
           name="ResetPassword"
           component={ResetPassword}
-          options={{ headerShown: false }}
+          options={{
+            tabBarVisible: false,
+            headerShown: true,
+            headerTitle: "Reset Password", // Customizing the header title
+            headerBackTitle: "Back", // Customizing the back button text
+            headerTintColor: "black", // Changing the color of the back button text
+          }} // Hide tab bar for this screen
         />
         {/* Add other screens here */}
       </Stack.Navigator>

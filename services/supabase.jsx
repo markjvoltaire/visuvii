@@ -4,7 +4,7 @@ import "react-native-url-polyfill/auto";
 
 const supabaseUrl = "https://kxctkoaalmhxrbabwkto.supabase.co";
 const supabaseAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4Y3Rrb2FhbG1oeHJiYWJ3a3RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg2ODg1ODYsImV4cCI6MjA0NDI2NDU4Nn0.Gp23tHLozt3l0vgiSnTamijsmWjooVvoe5mvsxeNi1k";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4Y3Rrb2FhbG1oeHJiYWJ3a3RvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyODY4ODU4NiwiZXhwIjoyMDQ0MjY0NTg2fQ.IGq9wCblGWzb902gwks49lyVvxQswPVnKXz9Ea2gJKA";
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   localStorage: AsyncStorage,
   autoRefreshToken: true,

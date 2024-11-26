@@ -36,6 +36,10 @@ export default function Login({ navigation }) {
     }
   };
 
+  const handleForgotPassword = async () => {
+    navigation.navigate("ResetPassword");
+  };
+
   return (
     <View style={styles.container}>
       {/* Go Back */}
@@ -74,6 +78,11 @@ export default function Login({ navigation }) {
       {/* Continue Button */}
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Continue</Text>
+      </TouchableOpacity>
+
+      {/* Forgot Password Button */}
+      <TouchableOpacity onPress={handleForgotPassword}>
+        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
       </TouchableOpacity>
 
       {/* Terms and Conditions */}
@@ -124,12 +133,19 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: "center",
-    marginBottom: 30,
+    marginBottom: 20,
   },
   buttonText: {
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  forgotPasswordText: {
+    fontSize: 16,
+    color: "#007AFF",
+    textAlign: "center",
+    marginBottom: 30,
+    textDecorationLine: "underline",
   },
   termsText: {
     fontSize: 12,
