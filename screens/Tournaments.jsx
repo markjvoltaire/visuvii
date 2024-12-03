@@ -27,7 +27,10 @@ export default function Tournaments({ navigation }) {
           <Text style={styles.totalPot}>Total Pot: {item.totalPot}</Text>
           <Text style={styles.joined}>{item.joined} joined</Text>
         </View>
-        <TouchableOpacity style={styles.joinButton}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("TournamentDetails")}
+          style={styles.joinButton}
+        >
           <Text style={styles.joinButtonText}>join for {item.entryFee}</Text>
         </TouchableOpacity>
       </View>
