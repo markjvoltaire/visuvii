@@ -8,8 +8,12 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import { supabase } from "../services/supabase";
 
 export default function UserProfile() {
+  const signOutUser = async () => {
+    await supabase.auth.signOut();
+  };
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={{ padding: 10 }}>
@@ -56,7 +60,7 @@ export default function UserProfile() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity onPress={signOutUser} style={styles.logoutButton}>
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>

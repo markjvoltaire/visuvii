@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Pressable,
 } from "react-native";
+import { supabase } from "../services/supabase";
 
 const tournaments = [
   { id: "1", entryFee: "$40", totalPot: "$3,600", joined: "30 / 32" },
@@ -17,6 +18,34 @@ const tournaments = [
 ];
 
 export default function Tournaments({ navigation }) {
+  const createTournament = async () => {
+    try {
+      const userId = supabase.auth.currentUser?.id;
+      if (!userId) throw new Error("User is not authenticated.");
+
+      const tournamentDetails = {
+        creatorId: userId,
+        entryPrice: 100,
+        mediaType: "image",
+        tournamentName: "BASKETBALL",
+        entriesSize: 10,
+        openTournament: true,
+      };
+
+      const { data, error } = await supabase
+        .from("tournaments")
+        .insert([tournamentDetails]);
+
+      if (error) {
+        console.error("Error creating tournament:", error.message);
+      } else {
+        console.log("Tournament created successfully:", data);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err.message);
+    }
+  };
+
   const renderItem = ({ item }) => (
     <Pressable onPress={() => navigation.navigate("TournamentDetails")}>
       <View style={styles.card}>
@@ -45,6 +74,9 @@ export default function Tournaments({ navigation }) {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
       />
+      <Pressable onPress={() => createTournament()}>
+        <Text>Create Tournament</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
