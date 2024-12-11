@@ -15,6 +15,8 @@ import Tournaments from "../screens/Tournaments";
 import UserProfile from "../screens/UserProfile";
 import PostDetails from "../screens/PostDetails";
 import TournamentDetails from "../screens/TournamentDetails";
+import TournamentIntro from "../screens/TournamentIntro";
+import CreateTournament from "../screens/CreateTournament";
 
 export default function Auth() {
   const handleSignOut = async () => {
@@ -119,7 +121,37 @@ export default function Auth() {
   const TournamentStack = () => {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Tournament" component={Tournaments} />
+        <Stack.Screen name="TournamentIntro" component={TournamentIntro} />
+
+        <Stack.Screen
+          name="Tournaments"
+          component={Tournaments}
+          options={{
+            headerShown: true,
+            headerBackTitle: "Go back",
+            headerTitle: "",
+            headerTransparent: true,
+            headerTitleStyle: {
+              color: "black",
+            },
+            headerTintColor: "black",
+          }}
+        />
+
+        <Stack.Screen
+          name="CreateTournament"
+          component={CreateTournament}
+          options={{
+            headerShown: true,
+            headerBackTitle: "Go back",
+            headerTitle: "",
+            headerTransparent: true,
+            headerTitleStyle: {
+              color: "black",
+            },
+            headerTintColor: "black",
+          }}
+        />
         <Stack.Screen
           name="TournamentDetails"
           component={TournamentDetails}
