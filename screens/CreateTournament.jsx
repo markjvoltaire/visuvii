@@ -4,7 +4,7 @@ import {
   Text,
   View,
   TextInput,
-  Button,
+  TouchableOpacity,
 } from "react-native";
 import React, { useState } from "react";
 import { supabase } from "../services/supabase";
@@ -12,6 +12,10 @@ import { supabase } from "../services/supabase";
 export default function CreateTournament() {
   const [tournamentName, setTournamentName] = useState("");
   const [tournamentCategory, setTournamentCategory] = useState("");
+  const [entryPrice, setEntryPrice] = useState("100");
+  const [mediaType, setMediaType] = useState("image");
+  const [entriesSize, setEntriesSize] = useState("10");
+  const [openTournament, setOpenTournament] = useState("false");
 
   const createTournament = async () => {
     try {
@@ -20,11 +24,11 @@ export default function CreateTournament() {
 
       const tournamentDetails = {
         creatorId: userId,
-        entryPrice: 100,
-        mediaType: "image",
+        entryPrice: parseFloat(entryPrice),
+        mediaType: mediaType,
         tournamentName: tournamentName,
-        entriesSize: 10,
-        openTournament: false,
+        entriesSize: parseInt(entriesSize, 10),
+        openTournament: openTournament === "true",
         category: tournamentCategory,
       };
 
@@ -43,21 +47,44 @@ export default function CreateTournament() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.formContainer}>
-        <Text style={styles.label}>Tournament Name:</Text>
+        <Text style={styles.header}>Create a Tournament</Text>
+
+        <Text style={styles.label}>Tournament Name</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter tournament name"
           value={tournamentName}
           onChangeText={setTournamentName}
         />
-        <Text style={styles.label}>Tournament Description:</Text>
+
+        <Text style={styles.label}>Tournament Description</Text>
         <TextInput
           style={styles.input}
-          placeholder="category"
+          placeholder="Enter tournament description"
           value={tournamentCategory}
           onChangeText={setTournamentCategory}
         />
-        <Button title="Create Tournament" onPress={createTournament} />
+
+        <Text style={styles.label}>Entry Price</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter entry price"
+          value={entryPrice}
+          keyboardType="numeric"
+          onChangeText={setEntryPrice}
+        />
+
+        <Text style={styles.label}>Media Type</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter media type"
+          value={mediaType}
+          onChangeText={setMediaType}
+        />
+
+        <TouchableOpacity style={styles.button} onPress={createTournament}>
+          <Text style={styles.buttonText}>Create Tournament</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -66,21 +93,51 @@ export default function CreateTournament() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 16,
+
+    alignItems: "center",
+    backgroundColor: "white",
+    padding: 16,
   },
   formContainer: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    top: 60,
+  },
+  header: {
+    fontSize: 20,
+    fontWeight: "bold",
     marginBottom: 20,
+    textAlign: "center",
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
+    color: "#333",
     marginBottom: 8,
   },
   input: {
-    borderWidth: 1,
+    height: 40,
     borderColor: "#ccc",
-    padding: 8,
+    borderWidth: 1,
     borderRadius: 4,
+    paddingHorizontal: 10,
     marginBottom: 16,
+  },
+  button: {
+    backgroundColor: "#007BFF",
+    paddingVertical: 12,
+    borderRadius: 4,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

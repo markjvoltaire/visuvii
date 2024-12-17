@@ -17,6 +17,7 @@ import PostDetails from "../screens/PostDetails";
 import TournamentDetails from "../screens/TournamentDetails";
 import TournamentIntro from "../screens/TournamentIntro";
 import CreateTournament from "../screens/CreateTournament";
+import UploadMedia from "../screens/UploadMedia";
 
 export default function Auth() {
   const handleSignOut = async () => {
@@ -164,6 +165,21 @@ export default function Auth() {
               color: "black",
             },
             headerTintColor: "black",
+          }}
+        />
+
+        <Stack.Screen
+          name="UploadMedia"
+          component={UploadMedia}
+          options={{
+            headerShown: true,
+            headerBackTitle: "",
+            headerTitle: "",
+            headerTransparent: true,
+            headerTitleStyle: {
+              color: "black",
+            },
+            headerTintColor: "white",
           }}
         />
       </Stack.Navigator>

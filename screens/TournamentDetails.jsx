@@ -17,7 +17,7 @@ const payouts = [
   { id: "6", place: "6th", prize: "Entry Fee Return" },
 ];
 
-export default function TournamentDetails() {
+export default function TournamentDetails({ navigation }) {
   const renderItem = ({ item }) => (
     <View style={styles.payoutRow}>
       <View style={styles.circle}>
@@ -39,7 +39,10 @@ export default function TournamentDetails() {
         contentContainerStyle={styles.listContent}
       />
       <View>
-        <TouchableOpacity style={styles.enterButton}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("UploadMedia")}
+          style={styles.enterButton}
+        >
           <Text style={styles.enterButtonText}>Enter Now</Text>
         </TouchableOpacity>
       </View>

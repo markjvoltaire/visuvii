@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
   },
   image: {
     resizeMode: "cover",
+    backgroundColor: "#e0e0e0",
   },
   skeleton: {
     backgroundColor: "#e0e0e0", // Grey color for skeleton loader
