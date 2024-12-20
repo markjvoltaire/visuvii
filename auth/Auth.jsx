@@ -18,6 +18,7 @@ import TournamentDetails from "../screens/TournamentDetails";
 import TournamentIntro from "../screens/TournamentIntro";
 import CreateTournament from "../screens/CreateTournament";
 import UploadMedia from "../screens/UploadMedia";
+import UploadScreen from "../screens/UploadScreen";
 
 export default function Auth() {
   const handleSignOut = async () => {
@@ -180,6 +181,21 @@ export default function Auth() {
               color: "black",
             },
             headerTintColor: "white",
+          }}
+        />
+
+        <Stack.Screen
+          name="UploadScreen"
+          component={UploadScreen}
+          options={{
+            headerShown: true,
+            headerBackTitle: "",
+            headerTitle: "Contest Entry",
+            headerTransparent: true,
+            headerTitleStyle: {
+              color: "black",
+            },
+            headerTintColor: "black",
           }}
         />
       </Stack.Navigator>

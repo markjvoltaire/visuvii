@@ -8,6 +8,7 @@ import {
   View,
   Image,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -15,6 +16,7 @@ export default function App() {
   const [media, setMedia] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const cameraRef = useRef(null);
+  const navigation = useNavigation();
 
   if (!permission) {
     return <View style={styles.container} />;
@@ -31,12 +33,10 @@ export default function App() {
     );
   }
 
-  // Function to toggle the camera direction
   function toggleCameraFacing() {
     setFacing((current) => (current === "back" ? "front" : "back"));
   }
 
-  // Function to capture an image
   const takePicture = async () => {
     if (cameraRef.current && !isRecording) {
       const photo = await cameraRef.current.takePictureAsync({
@@ -46,7 +46,6 @@ export default function App() {
     }
   };
 
-  // Function to start recording a video
   const startRecording = async () => {
     if (cameraRef.current) {
       setIsRecording(true);
@@ -58,7 +57,6 @@ export default function App() {
     }
   };
 
-  // Function to stop recording
   const stopRecording = () => {
     if (cameraRef.current) {
       cameraRef.current.stopRecording();
@@ -66,9 +64,14 @@ export default function App() {
     }
   };
 
-  // Function to reset the captured media
   const resetMedia = () => {
     setMedia(null);
+  };
+
+  const navigateToUpload = () => {
+    if (media?.uri) {
+      navigation.navigate("UploadScreen", { media });
+    }
   };
 
   return (
@@ -82,8 +85,6 @@ export default function App() {
             >
               <Text style={styles.text}>Flip</Text>
             </TouchableOpacity>
-
-            {/* Capture Button */}
             <TouchableOpacity
               style={[
                 styles.captureButton,
@@ -110,6 +111,14 @@ export default function App() {
           <TouchableOpacity style={styles.closeButton} onPress={resetMedia}>
             <Text style={styles.text}>Retake</Text>
           </TouchableOpacity>
+          {media.type === "image" && (
+            <TouchableOpacity
+              style={styles.nextButton}
+              onPress={navigateToUpload}
+            >
+              <Text style={styles.text}>Next</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -167,6 +176,13 @@ const styles = StyleSheet.create({
   closeButton: {
     position: "absolute",
     bottom: 50,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 15,
+    borderRadius: 10,
+  },
+  nextButton: {
+    position: "absolute",
+    bottom: 120,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 15,
     borderRadius: 10,
