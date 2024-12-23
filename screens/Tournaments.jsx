@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   StyleSheet,
@@ -10,32 +10,66 @@ import {
 } from "react-native";
 import { supabase } from "../services/supabase";
 
-const tournaments = [
-  { id: "1", entryFee: "$40", totalPot: "$3,600", joined: "30 / 32" },
-  { id: "2", entryFee: "$40", totalPot: "$3,600", joined: "30 / 32" },
-  { id: "3", entryFee: "$40", totalPot: "$3,600", joined: "30 / 32" },
-  { id: "4", entryFee: "$40", totalPot: "$3,600", joined: "30 / 32" },
-];
+const fetchTournaments = async () => {
+  try {
+    const { data, error } = await supabase.from("tournaments").select("*");
+
+    if (error) {
+      console.error("Error fetching tournaments:", error);
+      return [];
+    }
+    return data;
+  } catch (error) {
+    console.error("Unexpected error fetching tournaments:", error);
+    return [];
+  }
+};
+
+const TournamentCard = ({ tournament, onPress }) => (
+  <Pressable onPress={onPress}>
+    <View style={styles.card}>
+      <View style={styles.details}>
+        <Text style={styles.tournamentName}>
+          {tournament.tournamentName || "Unnamed Tournament"}
+        </Text>
+        <Text style={styles.entryFee}>
+          Entry Fee:{" "}
+          {tournament.entryPrice ? `$${tournament.entryPrice}` : "Free"}
+        </Text>
+        <Text style={styles.entriesSize}>
+          Entries:{" "}
+          {tournament.entriesSize ? `${tournament.entriesSize}` : "Open"}
+        </Text>
+        <Text style={styles.openTournament}>
+          Status: {tournament.openTournament ? "Open" : "Closed"}
+        </Text>
+      </View>
+      <TouchableOpacity onPress={onPress} style={styles.joinButton}>
+        <Text style={styles.joinButtonText}>Join</Text>
+      </TouchableOpacity>
+    </View>
+  </Pressable>
+);
 
 export default function Tournaments({ navigation }) {
+  const [tournaments, setTournaments] = useState([]);
+
+  useEffect(() => {
+    const loadTournaments = async () => {
+      const data = await fetchTournaments();
+      console.log("Fetched tournaments:", data);
+      setTournaments(data);
+    };
+
+    loadTournaments();
+  }, []);
+
+  const handlePress = (id) => {
+    navigation.navigate("TournamentDetails", { id });
+  };
+
   const renderItem = ({ item }) => (
-    <Pressable onPress={() => navigation.navigate("TournamentDetails")}>
-      <View style={styles.card}>
-        <View style={styles.details}>
-          <Text style={styles.entryFee}>
-            <Text>🎮</Text> Entry Fee
-          </Text>
-          <Text style={styles.totalPot}>Total Pot: {item.totalPot}</Text>
-          <Text style={styles.joined}>{item.joined} joined</Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("TournamentDetails")}
-          style={styles.joinButton}
-        >
-          <Text style={styles.joinButtonText}>join for {item.entryFee}</Text>
-        </TouchableOpacity>
-      </View>
-    </Pressable>
+    <TournamentCard tournament={item} onPress={() => handlePress(item.id)} />
   );
 
   return (
@@ -43,7 +77,7 @@ export default function Tournaments({ navigation }) {
       <FlatList
         data={tournaments}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
@@ -68,10 +102,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 3, // For Android shadow
+    elevation: 3,
   },
   details: {
     flex: 1,
+  },
+  tournamentName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
   },
   entryFee: {
     fontSize: 16,
@@ -79,13 +119,12 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 4,
   },
-  totalPot: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
+  entriesSize: {
+    fontSize: 14,
+    color: "#666",
     marginBottom: 4,
   },
-  joined: {
+  openTournament: {
     fontSize: 14,
     color: "#666",
   },
