@@ -12,26 +12,65 @@ import {
 
 export default function ContestEntryScreen({ route }) {
   const [accepted, setAccepted] = useState(false);
+  const imageUri = route?.params?.media?.uri;
+  const mediaDetails = route.params.media;
+  const tournamentDetails = route.params.tournamentDetails;
 
-  const handleContinue = () => {
+  console.log("mediaDetails", mediaDetails);
+  console.log("tournamentDetails", tournamentDetails);
+
+  const newFile = {
+    uri: mediaDetails.uri,
+    type: `image/${mediaDetails.type.split(".").pop()}`,
+    name: `image.${mediaDetails.uri.split(".").pop()}`,
+  };
+
+  const handleUploadError = () => {
+    Alert.alert("Upload Error", "An error occurred during the upload.");
+  };
+
+  const handleXHR = async (serviceData) => {
+    const data = new FormData();
+    data.append("file", {
+      uri: newFile.uri,
+      type: newFile.type,
+      name: newFile.name,
+    });
+    data.append("upload_preset", "TizlyUpload");
+
+    const xhr = new XMLHttpRequest();
+    xhr.open(
+      "POST",
+      "https://api.cloudinary.com/v1_1/debru0cpu/image/upload",
+      true
+    );
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        //  UPLOAD TO SUPABASE HERE
+      } else {
+        handleUploadError();
+      }
+    };
+
+    xhr.onerror = () => handleUploadError();
+
+    xhr.send(data);
+  };
+
+  const handleContinue = async () => {
     if (!accepted) {
       Alert.alert("Terms Not Accepted", "Please accept the terms to continue.");
       return;
     }
-    // Proceed to the next step
-    Alert.alert("Success", "You have accepted the terms!");
+    await handleXHR();
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
       <ScrollView style={styles.container}>
-        {/* <Text style={styles.title}>Contest Entry</Text> */}
-
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: route.params.media.uri }}
-            style={styles.image}
-          />
+          <Image source={{ uri: imageUri }} style={styles.image} />
         </View>
 
         <Text style={styles.description}>
@@ -42,6 +81,8 @@ export default function ContestEntryScreen({ route }) {
 
         <View style={styles.checkboxContainer}>
           <TouchableOpacity
+            accessibilityLabel="Accept terms and agreement"
+            accessibilityRole="checkbox"
             style={[
               styles.checkbox,
               { backgroundColor: accepted ? "#FF8800" : "transparent" },
@@ -73,11 +114,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: "white",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 16,
   },
   imageContainer: {
     alignItems: "center",

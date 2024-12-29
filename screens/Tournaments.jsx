@@ -7,6 +7,7 @@ import {
   FlatList,
   TouchableOpacity,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import { supabase } from "../services/supabase";
 
@@ -53,24 +54,36 @@ const TournamentCard = ({ tournament, onPress }) => (
 
 export default function Tournaments({ navigation }) {
   const [tournaments, setTournaments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadTournaments = async () => {
       const data = await fetchTournaments();
-      console.log("Fetched tournaments:", data);
+
       setTournaments(data);
+      setLoading(false);
     };
 
     loadTournaments();
   }, []);
 
-  const handlePress = (id) => {
-    navigation.navigate("TournamentDetails", { id });
+  const handlePress = (item) => {
+    navigation.navigate("TournamentDetails", { item });
   };
 
   const renderItem = ({ item }) => (
-    <TournamentCard tournament={item} onPress={() => handlePress(item.id)} />
+    <TournamentCard tournament={item} onPress={() => handlePress(item)} />
   );
+
+  if (loading) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: "white", justifyContent: "center" }}
+      >
+        <ActivityIndicator size="large" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

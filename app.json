@@ -13,25 +13,63 @@
     },
     "plugins": [
       [
+        "react-native-imglysdk",
+        {
+          "android": {
+            "version": "10.9.0",
+            "kspVersion": "1.8.0-1.0.9",
+            "modules": [
+              "ui:core",
+              "ui:transform",
+              "ui:filter",
+              "assets:filter-basic"
+            ],
+            "buildToolsVersion": "34.0.0",
+            "minSdkVersion": "21",
+            "compileSdkVersion": "34",
+            "targetSdkVersion": "34",
+            "kotlinGradlePluginVersion": "1.8.0"
+          }
+        }
+      ],
+      [
         "expo-camera",
         {
-          "cameraPermission": "Allow Visuvii access your camera",
+          "cameraPermission": "Allow Visuvii to access your camera",
           "microphonePermission": "Allow Visuvii to access your microphone",
           "recordAudioAndroid": true
         }
       ]
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.visuvii.app",
+      "buildNumber": "1.0.0"
     },
     "android": {
+      "package": "com.visuvii.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "expoBuildProperties": {
+        "ios": {
+          "deploymentTarget": "13.0"
+        }
+      },
+      "eas": {
+        "projectId": "617fb95a-bdef-496b-8e95-48166cfa1595"
+      }
     }
   }
 }

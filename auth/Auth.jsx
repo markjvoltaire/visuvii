@@ -131,7 +131,7 @@ export default function Auth() {
           options={{
             headerShown: true,
             headerBackTitle: "Go back",
-            headerTitle: "",
+            headerTitle: "Tournaments",
             headerTransparent: true,
             headerTitleStyle: {
               color: "black",

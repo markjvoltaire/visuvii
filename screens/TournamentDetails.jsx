@@ -17,35 +17,38 @@ const payouts = [
   { id: "6", place: "6th", prize: "Entry Fee Return" },
 ];
 
-export default function TournamentDetails({ navigation }) {
-  const renderItem = ({ item }) => (
-    <View style={styles.payoutRow}>
-      <View style={styles.circle}>
-        <Text style={styles.placeText}>{item.place}</Text>
-      </View>
-      <Text style={styles.prizeText}>{item.prize}</Text>
+const PayoutItem = ({ place, prize }) => (
+  <View style={styles.payoutRow}>
+    <View style={styles.circle}>
+      <Text style={styles.placeText}>{place}</Text>
     </View>
+    <Text style={styles.prizeText}>{prize}</Text>
+  </View>
+);
+
+export default function TournamentDetails({ navigation, route }) {
+  const { item } = route.params;
+
+  const renderItem = ({ item }) => (
+    <PayoutItem place={item.place} prize={item.prize} />
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Prize Payouts</Text>
       <FlatList
-        scrollEnabled={false}
         data={payouts}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
       />
-      <View>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("UploadMedia")}
-          style={styles.enterButton}
-        >
-          <Text style={styles.enterButtonText}>Enter Now</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        onPress={() => navigation.navigate("UploadMedia", { item })}
+        style={styles.enterButton}
+      >
+        <Text style={styles.enterButtonText}>Enter Now</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -54,7 +57,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    padding: 16, // Add padding around the edges
+    padding: 16,
   },
   title: {
     fontSize: 20,
@@ -63,7 +66,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   listContent: {
-    paddingBottom: 100, // Add padding to prevent overlap with the button
+    paddingBottom: 100,
   },
   payoutRow: {
     flexDirection: "row",
@@ -96,8 +99,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     position: "absolute",
     bottom: 20,
-    left: 16, // Ensure button aligns with the padding
-    right: 16, // Ensure button aligns with the padding
+    left: 16,
+    right: 16,
   },
   enterButtonText: {
     fontSize: 18,
