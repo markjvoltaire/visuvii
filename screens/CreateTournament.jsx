@@ -23,7 +23,7 @@ const FormInput = ({ label, ...props }) => (
 
 const ContentTypeToggle = ({ value, onToggle }) => {
   const handlePress = useCallback(() => {
-    onToggle(value === "video" ? "photo" : "video");
+    onToggle(value === "video" ? "image" : "video");
   }, [value, onToggle]);
 
   return (
@@ -52,13 +52,13 @@ const ContentTypeToggle = ({ value, onToggle }) => {
         <View
           style={[
             styles.toggleOption,
-            value === "photo" && styles.toggleOptionActive,
+            value === "image" && styles.toggleOptionActive,
           ]}
         >
           <Text
             style={[
               styles.toggleText,
-              value === "photo" && styles.toggleTextActive,
+              value === "image" && styles.toggleTextActive,
             ]}
           >
             Photo

@@ -17,7 +17,11 @@ const { width } = Dimensions.get("window");
 
 const fetchTournaments = async () => {
   try {
-    const { data, error } = await supabase.from("tournaments").select("*");
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("*")
+      .order("created_at", { ascending: false }); // Sorting by 'created_at' in descending order
+
     if (error) {
       console.error("Error fetching tournaments:", error);
       return [];

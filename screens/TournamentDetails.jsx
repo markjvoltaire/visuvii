@@ -32,6 +32,8 @@ const PayoutItem = ({ place, prize }) => (
 export default function TournamentDetails({ navigation, route }) {
   const { item } = route.params;
 
+  console.log("item :>> ", item);
+
   const handleEnterTournament = () => {
     // Navigate to different screens based on mediaType
     const screenName =

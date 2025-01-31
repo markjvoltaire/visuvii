@@ -8,22 +8,23 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+import { Video } from "expo-av";
 
 export default function PostDetails({ route }) {
-  const { image } = route.params;
+  const { entry } = route.params;
   const [isLoading, setIsLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef(null);
 
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Handle image load success
-  const handleImageLoad = () => {
+  const handleMediaLoad = () => {
     setIsLoading(false);
     startFadeAnimation();
   };
 
-  // Start fade animation
   const startFadeAnimation = () => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -32,36 +33,67 @@ export default function PostDetails({ route }) {
     }).start();
   };
 
-  // Reset animation when image changes
   useEffect(() => {
     setIsLoading(true);
     fadeAnim.setValue(0);
-  }, [image]);
+  }, [entry]);
+
+  const togglePlayPause = async () => {
+    if (!videoRef.current) return;
+
+    if (isPlaying) {
+      await videoRef.current.pauseAsync();
+    } else {
+      await videoRef.current.playAsync();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const MediaContent = () => {
+    if (entry.mediaType === "video") {
+      return (
+        <View style={styles.videoContainer}>
+          <Video
+            ref={videoRef}
+            source={{ uri: entry.media }}
+            style={styles.backgroundVideo}
+            resizeMode="contain"
+            shouldPlay={true}
+            isLooping={true}
+            onLoadStart={() => setIsLoading(true)}
+            onLoad={() => {
+              setIsLoading(false);
+              startFadeAnimation();
+            }}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <Animated.Image
+        style={[styles.backgroundImage, { opacity: fadeAnim }]}
+        source={{ uri: entry.media }}
+        onLoad={handleMediaLoad}
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
-      {/* Fading Background Image */}
-      <Animated.Image
-        style={[styles.backgroundImage, { opacity: fadeAnim }]}
-        source={image}
-        onLoad={handleImageLoad}
-      />
+      <MediaContent />
 
-      {/* Dark Overlay */}
       <View
         style={[styles.overlay, { height: screenHeight, width: screenWidth }]}
       />
 
-      {/* Loading Indicator */}
       {isLoading && (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#FFFFFF" />
         </View>
       )}
 
-      {/* Vote Buttons Container */}
       <View style={styles.buttonsContainer}>
-        {/* Thumbs Down Button */}
         <TouchableOpacity
           style={styles.voteButton}
           onPress={() => console.log("Voted down")}
@@ -72,7 +104,6 @@ export default function PostDetails({ route }) {
           />
         </TouchableOpacity>
 
-        {/* Thumbs Up Button */}
         <TouchableOpacity
           style={styles.voteButton}
           onPress={() => console.log("Voted up")}
@@ -96,6 +127,22 @@ const styles = StyleSheet.create({
     height: "100%",
     width: "100%",
     position: "absolute",
+  },
+  videoContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backgroundVideo: {
+    flex: 1,
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+  },
+  playPauseButton: {
+    position: "absolute",
+    zIndex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 40,
   },
   overlay: {
     position: "absolute",
@@ -123,7 +170,7 @@ const styles = StyleSheet.create({
   voteButton: {
     justifyContent: "center",
     alignItems: "center",
-    padding: 10, // Added padding for better touch area
+    padding: 10,
   },
   voteIcon: {
     height: 70,
