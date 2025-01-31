@@ -4,112 +4,235 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Alert,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
-import React, { useState } from "react";
-import { supabase } from "../services/supabase";
+import React, { useState, useRef, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Name({ navigation }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
-  const handleNext = async () => {
-    navigation.navigate("Dob", { firstName, lastName });
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleNext = () => {
+    if (!firstName.trim() || !lastName.trim()) {
+      Alert.alert(
+        "Missing Information",
+        "Please enter both your first and last name"
+      );
+      return;
+    }
+    navigation.navigate("Dob", {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+    });
   };
 
   return (
-    <View style={styles.container}>
-      {/* Go Back */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={styles.backText}>← Go Back</Text>
-      </TouchableOpacity>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.inner}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+          </TouchableOpacity>
 
-      {/* Login Text */}
-      <Text style={styles.title}>Let's Get Started</Text>
-      <Text style={styles.subtitle}>Enter your first and last name.</Text>
+          <Animated.View
+            style={[
+              styles.contentContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            <View style={styles.headerContainer}>
+              <Text style={styles.title}>Let's Get Started</Text>
+              <Text style={styles.subtitle}>Tell us your name to continue</Text>
+            </View>
 
-      {/* Email Input */}
-      <TextInput
-        style={styles.input}
-        placeholder="First Name"
-        placeholderTextColor="#999"
-        value={firstName}
-        onChangeText={(text) => setFirstName(text)}
-        keyboardType="email-address"
-      />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>First Name</Text>
+              <View style={styles.inputWrapper}>
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color="#666"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your first name"
+                  placeholderTextColor="#999"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoComplete="given-name"
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                />
+              </View>
 
-      {/* Password Input */}
-      <TextInput
-        style={styles.input}
-        placeholder="Last Name"
-        placeholderTextColor="#999"
-        value={lastName}
-        onChangeText={(text) => setLastName(text)}
-      />
+              <Text style={styles.label}>Last Name</Text>
+              <View style={styles.inputWrapper}>
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color="#666"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your last name"
+                  placeholderTextColor="#999"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  autoComplete="family-name"
+                  autoCapitalize="words"
+                  returnKeyType="done"
+                  onSubmitEditing={handleNext}
+                />
+              </View>
+            </View>
 
-      {/* Continue Button */}
-      <TouchableOpacity style={styles.button} onPress={handleNext}>
-        <Text style={styles.buttonText}>Continue</Text>
-      </TouchableOpacity>
-    </View>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                (!firstName.trim() || !lastName.trim()) &&
+                  styles.buttonDisabled,
+              ]}
+              onPress={handleNext}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.buttonText}>Continue</Text>
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color="white"
+                style={styles.buttonIcon}
+              />
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
+  },
+  inner: {
+    flex: 1,
+    padding: 24,
   },
   backButton: {
-    marginTop: 40,
-    marginBottom: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: Platform.OS === "ios" ? 40 : 20,
   },
-  backText: {
-    fontSize: 16,
-    color: "black",
+  contentContainer: {
+    flex: 1,
+    marginTop: 32,
+  },
+  headerContainer: {
+    marginBottom: 32,
   },
   title: {
-    fontSize: 25,
-    fontWeight: "bold",
-    marginBottom: 10,
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: "#666",
-    marginBottom: 30,
+  },
+  inputContainer: {
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#e1e1e1",
+    borderRadius: 12,
+    backgroundColor: "#f8f8f8",
+    height: 56,
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    marginRight: 12,
   },
   input: {
-    height: 50,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
+    flex: 1,
     fontSize: 16,
-    marginBottom: 20,
+    color: "#1a1a1a",
   },
   button: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 15,
-    borderRadius: 8,
+    height: 56,
+    backgroundColor: "#FF7A45",
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 30,
+    shadowColor: "#FF7A45",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  buttonDisabled: {
+    backgroundColor: "#FFB499",
+    shadowOpacity: 0,
   },
   buttonText: {
     color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
+    marginRight: 8,
   },
-  termsText: {
-    fontSize: 12,
-    color: "#999",
-    textAlign: "center",
-  },
-  linkText: {
-    color: "#007AFF",
-    textDecorationLine: "underline",
+  buttonIcon: {
+    marginLeft: 4,
   },
 });
