@@ -19,15 +19,25 @@ const payouts = [
 
 const PayoutItem = ({ place, prize }) => (
   <View style={styles.payoutRow}>
-    <View style={styles.circle}>
+    <View style={styles.rankContainer}>
       <Text style={styles.placeText}>{place}</Text>
     </View>
-    <Text style={styles.prizeText}>{prize}</Text>
+    <View style={styles.prizeContainer}>
+      <Text style={styles.prizeText}>{prize}</Text>
+      <Text style={styles.prizeLabel}>Prize</Text>
+    </View>
   </View>
 );
 
 export default function TournamentDetails({ navigation, route }) {
   const { item } = route.params;
+
+  const handleEnterTournament = () => {
+    // Navigate to different screens based on mediaType
+    const screenName =
+      item.mediaType === "image" ? "UploadImage" : "UploadVideo";
+    navigation.navigate(screenName, { item });
+  };
 
   const renderItem = ({ item }) => (
     <PayoutItem place={item.place} prize={item.prize} />
@@ -35,7 +45,11 @@ export default function TournamentDetails({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Prize Payouts</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Prize Pool</Text>
+        <Text style={styles.subtitle}>Tournament Payouts</Text>
+      </View>
+
       <FlatList
         data={payouts}
         renderItem={renderItem}
@@ -43,12 +57,15 @@ export default function TournamentDetails({ navigation, route }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
       />
-      <TouchableOpacity
-        onPress={() => navigation.navigate("UploadMedia", { item })}
-        style={styles.enterButton}
-      >
-        <Text style={styles.enterButtonText}>Enter Now</Text>
-      </TouchableOpacity>
+
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          onPress={handleEnterTournament}
+          style={styles.enterButton}
+        >
+          <Text style={styles.enterButtonText}>Enter Tournament</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -56,56 +73,95 @@ export default function TournamentDetails({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    padding: 16,
+    backgroundColor: "white",
+  },
+  header: {
+    backgroundColor: "#FFF",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginVertical: 16,
-    textAlign: "center",
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#6B7280",
+    fontWeight: "500",
   },
   listContent: {
-    paddingBottom: 100,
+    padding: 16,
   },
   payoutRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
-    padding: 10,
+    backgroundColor: "#FFFFFF",
+    marginBottom: 12,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 2,
   },
-  circle: {
-    height: 50,
-    width: 50,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: "#ccc",
+  rankContainer: {
+    height: 56,
+    width: 56,
+    borderRadius: 28,
+    backgroundColor: "#EEF2FF",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
   },
   placeText: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
+    fontWeight: "700",
+    color: "#6366F1",
+  },
+  prizeContainer: {
+    flex: 1,
   },
   prizeText: {
-    fontSize: 16,
-    color: "#000",
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#059669",
+    marginBottom: 2,
+  },
+  prizeLabel: {
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  buttonContainer: {
+    padding: 16,
+    backgroundColor: "#FFF",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
   },
   enterButton: {
-    backgroundColor: "#007BFF",
-    paddingVertical: 12,
-    borderRadius: 8,
-    position: "absolute",
-    bottom: 20,
-    left: 16,
-    right: 16,
+    backgroundColor: "#6366F1",
+    paddingVertical: 16,
+    borderRadius: 12,
+    shadowColor: "#6366F1",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   enterButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFF",
     textAlign: "center",
+    letterSpacing: 0.5,
   },
 });

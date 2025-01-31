@@ -12,28 +12,38 @@ export default function TournamentIntro({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={{ top: 150 }}>
-        <Text style={styles.header}>
-          Create a tournament or join a tournament
-        </Text>
-        {["join", "create"].map((type, index) => (
+      <View style={styles.content}>
+        <Text style={styles.title}>Tournament Hub</Text>
+        <Text style={styles.subtitle}>Choose your path</Text>
+
+        <View style={styles.optionsContainer}>
           <TouchableOpacity
-            key={index}
-            style={[styles.option]}
-            onPress={() => handleSelect(type)}
+            style={styles.optionCard}
+            onPress={() => handleSelect("join")}
           >
-            <View style={styles.optionContent}>
-              <Text style={styles.optionText}>
-                {type === "join" ? "Join" : "Create"}
-              </Text>
-              <Text style={styles.subText}>
-                {type === "join"
-                  ? "View live tournaments and join the competition for your chance to win a cash prize"
-                  : "Create your own tournament and let people join to win a cash prize"}
-              </Text>
+            <View style={[styles.iconContainer, styles.joinIcon]}>
+              <Text style={styles.iconText}>🏆</Text>
             </View>
+            <Text style={styles.optionTitle}>Join Tournament</Text>
+            <Text style={styles.optionDescription}>
+              Compete in live tournaments and win cash prizes in exciting
+              competitions
+            </Text>
           </TouchableOpacity>
-        ))}
+
+          <TouchableOpacity
+            style={styles.optionCard}
+            onPress={() => handleSelect("create")}
+          >
+            <View style={[styles.iconContainer, styles.createIcon]}>
+              <Text style={styles.iconText}>⚡</Text>
+            </View>
+            <Text style={styles.optionTitle}>Create Tournament</Text>
+            <Text style={styles.optionDescription}>
+              Host your own tournament and set up prize pools for participants
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -43,58 +53,67 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    alignItems: "center",
-    paddingHorizontal: 10,
   },
-  header: {
+  content: {
+    flex: 1,
+    padding: 24,
+    paddingTop: 60,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#111827",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: "#6B7280",
+    textAlign: "center",
+    marginBottom: 40,
+  },
+  optionsContainer: {
+    gap: 20,
+  },
+  optionCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 2,
+  },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  joinIcon: {
+    backgroundColor: "#EEF2FF",
+  },
+  createIcon: {
+    backgroundColor: "#FEF3C7",
+  },
+  iconText: {
+    fontSize: 24,
+  },
+  optionTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#333",
-    marginBottom: 30,
-    textAlign: "center",
+    color: "#111827",
+    marginBottom: 8,
   },
-  option: {
-    width: "100%",
-    paddingVertical: 20,
-    paddingHorizontal: 15,
-    borderRadius: 12,
-    marginBottom: 20,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  selectedOption: {
-    backgroundColor: "#4A90E2",
-    shadowColor: "#4A90E2",
-    shadowOpacity: 0.3,
-  },
-  optionContent: {
-    alignItems: "center",
-  },
-  optionText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  subText: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    marginTop: 8,
-  },
-  goBackButton: {
-    marginTop: 30,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    backgroundColor: "#333",
-  },
-  goBackText: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "600",
+  optionDescription: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#6B7280",
   },
 });

@@ -19,6 +19,8 @@ import TournamentIntro from "../screens/TournamentIntro";
 import CreateTournament from "../screens/CreateTournament";
 import UploadMedia from "../screens/UploadMedia";
 import UploadScreen from "../screens/UploadScreen";
+import UploadImage from "../screens/UploadImage";
+import UploadVideo from "../screens/UploadVideo";
 
 export default function Auth() {
   const handleSignOut = async () => {
@@ -128,6 +130,36 @@ export default function Auth() {
         <Stack.Screen
           name="Tournaments"
           component={Tournaments}
+          options={{
+            headerShown: true,
+            headerBackTitle: "Go back",
+            headerTitle: "Tournaments",
+            headerTransparent: true,
+            headerTitleStyle: {
+              color: "black",
+            },
+            headerTintColor: "black",
+          }}
+        />
+
+        <Stack.Screen
+          name="UploadImage"
+          component={UploadImage}
+          options={{
+            headerShown: true,
+            headerBackTitle: "Go back",
+            headerTitle: "Tournaments",
+            headerTransparent: true,
+            headerTitleStyle: {
+              color: "black",
+            },
+            headerTintColor: "black",
+          }}
+        />
+
+        <Stack.Screen
+          name="UploadVideo"
+          component={UploadVideo}
           options={{
             headerShown: true,
             headerBackTitle: "Go back",

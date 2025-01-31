@@ -11,7 +11,6 @@ import {
   Pressable,
 } from "react-native";
 
-// Import your images
 const images = [
   require("../assets/pic1.jpg"),
   require("../assets/pic2.jpg"),
@@ -35,20 +34,18 @@ const images = [
 
 export default function Home({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true); // State for loading
-  const numColumns = 3; // Number of columns
-  const margin = 1;
+  const [loading, setLoading] = useState(true);
+  const numColumns = 3;
+  const spacing = 2;
   const imageSize =
-    (Dimensions.get("window").width - margin * (numColumns + 1)) / numColumns;
+    (Dimensions.get("window").width - spacing * (numColumns + 1)) / numColumns;
 
-  // Split images into three separate arrays for three columns
   const columnOneImages = images.filter((_, index) => index % 3 === 0);
   const columnTwoImages = images.filter((_, index) => index % 3 === 1);
   const columnThreeImages = images.filter((_, index) => index % 3 === 2);
 
   const onRefresh = () => {
     setRefreshing(true);
-    // Simulate a network request, then set refreshing to false
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
@@ -56,26 +53,82 @@ export default function Home({ navigation }) {
 
   useEffect(() => {
     setTimeout(() => {
-      setLoading(false); // Set loading to false after 2 seconds
+      setLoading(false);
     }, 1000);
   }, []);
 
-  // Function to create an Animated Image component
-  const FadeInImage = ({ source, style }) => {
-    const fadeAnim = new Animated.Value(0); // Initial opacity is 0
+  const FadeInImage = ({ source, style, onPress }) => {
+    const fadeAnim = new Animated.Value(0);
+    const scaleAnim = new Animated.Value(1);
 
     useEffect(() => {
       Animated.timing(fadeAnim, {
-        toValue: 1, // Fade to opacity 1
-        duration: 1000, // Duration in milliseconds
+        toValue: 1,
+        duration: 800,
         useNativeDriver: true,
       }).start();
     }, []);
 
+    const handlePressIn = () => {
+      Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start();
+    };
+
     return (
-      <Animated.Image source={source} style={[style, { opacity: fadeAnim }]} />
+      <Pressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <Animated.Image
+          source={source}
+          style={[
+            style,
+            {
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}
+        />
+      </Pressable>
     );
   };
+
+  const renderColumn = (columnImages) => (
+    <View style={styles.column}>
+      {loading
+        ? Array.from({ length: images.length / 3 }).map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.skeleton,
+                styles.shimmer,
+                { width: imageSize, height: imageSize, margin: spacing },
+              ]}
+            />
+          ))
+        : columnImages.map((image, index) => (
+            <FadeInImage
+              key={index}
+              source={image}
+              style={[
+                styles.image,
+                { width: imageSize, height: imageSize, margin: spacing },
+              ]}
+              onPress={() => navigation.navigate("PostDetails", { image })}
+            />
+          ))}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -83,96 +136,17 @@ export default function Home({ navigation }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollViewContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="grey"
+          />
         }
       >
         <View style={styles.container}>
-          <View style={styles.column}>
-            {loading
-              ? Array.from({ length: images.length / 3 }).map((_, index) => (
-                  <View
-                    key={index}
-                    style={[
-                      styles.skeleton,
-                      { width: imageSize, height: imageSize, margin },
-                    ]}
-                  />
-                ))
-              : columnOneImages.map((image, index) => (
-                  <Pressable
-                    onPress={() =>
-                      navigation.navigate("PostDetails", { image })
-                    }
-                    key={index}
-                  >
-                    <FadeInImage
-                      key={index}
-                      source={image}
-                      style={[
-                        styles.image,
-                        { width: imageSize, height: imageSize, margin },
-                      ]}
-                    />
-                  </Pressable>
-                ))}
-          </View>
-          <View style={styles.column}>
-            {loading
-              ? Array.from({ length: images.length / 3 }).map((_, index) => (
-                  <View
-                    key={index}
-                    style={[
-                      styles.skeleton,
-                      { width: imageSize, height: imageSize, margin },
-                    ]}
-                  />
-                ))
-              : columnTwoImages.map((image, index) => (
-                  <Pressable
-                    onPress={() =>
-                      navigation.navigate("PostDetails", { image })
-                    }
-                    key={index}
-                  >
-                    <FadeInImage
-                      source={image}
-                      style={[
-                        styles.image,
-                        { width: imageSize, height: imageSize, margin },
-                      ]}
-                    />
-                  </Pressable>
-                ))}
-          </View>
-          <View style={styles.column}>
-            {loading
-              ? Array.from({ length: images.length / 3 }).map((_, index) => (
-                  <View
-                    key={index}
-                    style={[
-                      styles.skeleton,
-                      { width: imageSize, height: imageSize, margin },
-                    ]}
-                  />
-                ))
-              : columnThreeImages.map((image, index) => (
-                  <Pressable
-                    onPress={() =>
-                      navigation.navigate("PostDetails", { image })
-                    }
-                    key={index}
-                  >
-                    <FadeInImage
-                      key={index}
-                      source={image}
-                      style={[
-                        styles.image,
-                        { width: imageSize, height: imageSize, margin },
-                      ]}
-                    />
-                  </Pressable>
-                ))}
-          </View>
+          {renderColumn(columnOneImages)}
+          {renderColumn(columnTwoImages)}
+          {renderColumn(columnThreeImages)}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -182,23 +156,41 @@ export default function Home({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F3F4F6",
   },
   scrollViewContent: {
-    paddingBottom: 10,
+    paddingVertical: 12,
   },
   container: {
     flexDirection: "row",
+    paddingHorizontal: 2,
   },
   column: {
     flex: 1,
   },
   image: {
     resizeMode: "cover",
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "#E5E7EB",
+    borderRadius: 8,
   },
   skeleton: {
-    backgroundColor: "#e0e0e0", // Grey color for skeleton loader
-    borderRadius: 5, // Optional: rounded corners for skeleton loader
+    backgroundColor: "#E5E7EB",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  shimmer: {
+    position: "relative",
+    overflow: "hidden",
+  },
+  "@keyframes shimmer": {
+    "0%": {
+      backgroundColor: "#F3F4F6",
+    },
+    "50%": {
+      backgroundColor: "#E5E7EB",
+    },
+    "100%": {
+      backgroundColor: "#F3F4F6",
+    },
   },
 });

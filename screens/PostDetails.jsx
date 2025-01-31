@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   Animated,
@@ -6,58 +6,83 @@ import {
   Dimensions,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 
 export default function PostDetails({ route }) {
-  const { image } = route.params; // Extract image from route params
+  const { image } = route.params;
+  const [isLoading, setIsLoading] = useState(true);
 
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const fadeAnim = useRef(new Animated.Value(0)).current; // Initial opacity is 0
+  // Handle image load success
+  const handleImageLoad = () => {
+    setIsLoading(false);
+    startFadeAnimation();
+  };
 
-  useEffect(() => {
+  // Start fade animation
+  const startFadeAnimation = () => {
     Animated.timing(fadeAnim, {
-      toValue: 1, // Fade to opacity 1
-      duration: 600, // Duration in milliseconds
-      useNativeDriver: true, // Use native driver for performance
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
     }).start();
-  }, [fadeAnim]);
+  };
+
+  // Reset animation when image changes
+  useEffect(() => {
+    setIsLoading(true);
+    fadeAnim.setValue(0);
+  }, [image]);
 
   return (
     <View style={styles.container}>
       {/* Fading Background Image */}
       <Animated.Image
-        style={[
-          styles.backgroundImage,
-          { opacity: fadeAnim }, // Bind opacity to fadeAnim
-        ]}
-        source={image} // Directly use the `require` object
+        style={[styles.backgroundImage, { opacity: fadeAnim }]}
+        source={image}
+        onLoad={handleImageLoad}
       />
+
+      {/* Dark Overlay */}
       <View
-        style={{
-          backgroundColor: "black",
-          height: screenHeight,
-          width: screenWidth,
-          opacity: 0.3,
-        }}
+        style={[styles.overlay, { height: screenHeight, width: screenWidth }]}
       />
 
-      {/* Thumbs Down Icon */}
-      <TouchableOpacity style={styles.voteDownButton}>
-        <Image
-          style={styles.voteIcon}
-          source={require("../assets/voteDown.png")}
-        />
-      </TouchableOpacity>
+      {/* Loading Indicator */}
+      {isLoading && (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      )}
 
-      {/* Thumbs Up Icon */}
-      <TouchableOpacity style={styles.voteUpButton}>
-        <Image
-          style={styles.voteIcon}
-          source={require("../assets/voteUp.png")}
-        />
-      </TouchableOpacity>
+      {/* Vote Buttons Container */}
+      <View style={styles.buttonsContainer}>
+        {/* Thumbs Down Button */}
+        <TouchableOpacity
+          style={styles.voteButton}
+          onPress={() => console.log("Voted down")}
+        >
+          <Image
+            style={styles.voteIcon}
+            source={require("../assets/voteDown.png")}
+          />
+        </TouchableOpacity>
+
+        {/* Thumbs Up Button */}
+        <TouchableOpacity
+          style={styles.voteButton}
+          onPress={() => console.log("Voted up")}
+        >
+          <Image
+            style={styles.voteIcon}
+            source={require("../assets/voteUp.png")}
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -66,31 +91,43 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "black",
     flex: 1,
-    justifyContent: "space-between",
-    alignItems: "center",
   },
   backgroundImage: {
     height: "100%",
     width: "100%",
-    position: "absolute", // Ensure it stays in the background
-  },
-  voteDownButton: {
     position: "absolute",
-    bottom: 50,
-    left: 40,
+  },
+  overlay: {
+    position: "absolute",
+    backgroundColor: "black",
+    opacity: 0.3,
+  },
+  loaderContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: "center",
     alignItems: "center",
   },
-  voteUpButton: {
+  buttonsContainer: {
     position: "absolute",
     bottom: 50,
-    right: 40,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 40,
+  },
+  voteButton: {
     justifyContent: "center",
     alignItems: "center",
+    padding: 10, // Added padding for better touch area
   },
   voteIcon: {
     height: 70,
     width: 70,
-    resizeMode: "contain", // Maintain aspect ratio
+    resizeMode: "contain",
   },
 });

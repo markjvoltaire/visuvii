@@ -14,54 +14,60 @@ export default function UserProfile() {
   const signOutUser = async () => {
     await supabase.auth.signOut();
   };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={{ padding: 10 }}>
-        {/* Profile Section */}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Profile</Text>
+        </View>
+
         <View style={styles.profileSection}>
-          <Image
-            source={require("../assets/pic2.jpg")} // Replace with actual profile picture URL
-            style={styles.profileImage}
-          />
+          <View style={styles.imageContainer}>
+            <Image
+              source={require("../assets/pic2.jpg")}
+              style={styles.profileImage}
+            />
+          </View>
           <Text style={styles.userName}>John Apple</Text>
-          <Text style={styles.playableBalance}>Playable Balance</Text>
-          <Text style={styles.balanceAmount}>$35.00</Text>
+          <View style={styles.balanceCard}>
+            <Text style={styles.balanceLabel}>Available Balance</Text>
+            <Text style={styles.balanceAmount}>$35.00</Text>
+            <TouchableOpacity style={styles.withdrawButton}>
+              <Text style={styles.withdrawText}>Withdraw Funds</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Account Section */}
-        <View style={styles.section}>
+        <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Account</Text>
-          <View style={styles.item}>
-            <Text style={styles.itemText}>Account Overview</Text>
-          </View>
-          <View style={styles.item}>
-            <Text style={styles.itemText}>Transaction History</Text>
-          </View>
-          <View style={styles.item}>
-            <Text style={styles.itemText}>Account Settings</Text>
-          </View>
+          {["Account Overview", "Transaction History", "Account Settings"].map(
+            (item, index) => (
+              <TouchableOpacity key={index} style={styles.menuItem}>
+                <Text style={styles.menuItemText}>{item}</Text>
+                <Text style={styles.chevron}>›</Text>
+              </TouchableOpacity>
+            )
+          )}
         </View>
 
-        {/* Support & About Section */}
-        <View style={styles.section}>
+        <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Support & About</Text>
-          <View style={styles.item}>
-            <Text style={styles.itemText}>Tax Center</Text>
-          </View>
-          <View style={styles.item}>
-            <Text style={styles.itemText}>Help & Support</Text>
-          </View>
-          <View style={styles.item}>
-            <Text style={styles.itemText}>Terms and Policies</Text>
-          </View>
-          <View style={styles.item}>
-            <Text style={styles.itemText}>Rules and Scoring</Text>
-          </View>
+          {[
+            "Tax Center",
+            "Help & Support",
+            "Terms and Policies",
+            "Rules and Scoring",
+          ].map((item, index) => (
+            <TouchableOpacity key={index} style={styles.menuItem}>
+              <Text style={styles.menuItemText}>{item}</Text>
+              <Text style={styles.chevron}>›</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Logout Button */}
         <TouchableOpacity onPress={signOutUser} style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -71,67 +77,115 @@ export default function UserProfile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    paddingHorizontal: 20,
+    backgroundColor: "white",
   },
-  backButton: {
-    marginTop: 20,
+  header: {
+    padding: 20,
+    backgroundColor: "#FFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
   },
-  backArrow: {
-    fontSize: 24,
-    color: "#000",
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111827",
   },
   profileSection: {
     alignItems: "center",
-    marginVertical: 20,
+    paddingVertical: 24,
+    backgroundColor: "#FFF",
+  },
+  imageContainer: {
+    padding: 3,
+    borderRadius: 999,
+    backgroundColor: "#6366F1",
   },
   profileImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
+    borderWidth: 3,
+    borderColor: "#FFF",
   },
   userName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginVertical: 10,
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#111827",
+    marginTop: 12,
+    marginBottom: 20,
   },
-  playableBalance: {
-    fontSize: 16,
-    color: "#888",
+  balanceCard: {
+    backgroundColor: "#EEF2FF",
+    padding: 20,
+    borderRadius: 16,
+    width: "90%",
+    alignItems: "center",
+  },
+  balanceLabel: {
+    fontSize: 14,
+    color: "#6366F1",
+    fontWeight: "600",
+    marginBottom: 4,
   },
   balanceAmount: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#000",
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 16,
   },
-  section: {
-    marginVertical: 10,
+  withdrawButton: {
+    backgroundColor: "#6366F1",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  withdrawText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  menuSection: {
+    backgroundColor: "#FFF",
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 8,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
+    fontWeight: "600",
+    color: "#6B7280",
+    marginBottom: 12,
+    textTransform: "uppercase",
   },
-  item: {
-    backgroundColor: "#f5f5f5",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
   },
-  itemText: {
+  menuItemText: {
     fontSize: 16,
+    color: "#111827",
+    fontWeight: "500",
+  },
+  chevron: {
+    fontSize: 20,
+    color: "#9CA3AF",
   },
   logoutButton: {
-    backgroundColor: "#0066FF",
-    padding: 15,
-    borderRadius: 8,
+    marginHorizontal: 20,
+    marginVertical: 24,
+    backgroundColor: "#EF4444",
+    padding: 16,
+    borderRadius: 12,
     alignItems: "center",
-    marginTop: 20,
-    marginBottom: 40,
   },
   logoutText: {
     fontSize: 16,
-    color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "600",
+    color: "#FFF",
   },
 });
