@@ -18,7 +18,6 @@ const UPLOAD_PRESET = "TizlyUpload";
 
 export default function UploadImage({ navigation, route }) {
   const { item } = route.params;
-  console.log("item :>> ", item);
 
   const [imageData, setImageData] = useState({
     uri: null,
@@ -136,6 +135,7 @@ export default function UploadImage({ navigation, route }) {
         media: mediaUrl,
         userId: userId,
         tournamentId: item.tournamentId,
+        category: item.category,
       },
     ]);
 

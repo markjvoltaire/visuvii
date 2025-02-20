@@ -7,18 +7,59 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Text,
+  Alert,
 } from "react-native";
 import { Video } from "expo-av";
+import { supabase } from "../services/supabase";
 
 export default function PostDetails({ route }) {
   const { entry } = route.params;
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
+
   const videoRef = useRef(null);
 
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
+
+  // For fade-in animation on media
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Reset states on entry change
+    setIsLoading(true);
+    fadeAnim.setValue(0);
+    setHasVoted(false);
+
+    // Check if user has already voted for this entry
+    checkIfUserHasVoted();
+  }, [entry]);
+
+  const checkIfUserHasVoted = async () => {
+    try {
+      const userId = supabase.auth.currentUser?.id;
+      if (!userId) return;
+
+      // Fetch any existing vote for this user/entry combination
+      const { data, error } = await supabase
+        .from("votes")
+        .select("*")
+        .eq("voterId", userId)
+        .eq("tournamentId", entry.tournamentId)
+        .eq("creatorId", entry.creatorId);
+
+      if (error) throw error;
+
+      // If data array is not empty, user has already voted
+      if (data && data.length > 0) {
+        setHasVoted(true);
+      }
+    } catch (err) {
+      console.error("Error checking vote:", err);
+    }
+  };
 
   const handleMediaLoad = () => {
     setIsLoading(false);
@@ -33,11 +74,6 @@ export default function PostDetails({ route }) {
     }).start();
   };
 
-  useEffect(() => {
-    setIsLoading(true);
-    fadeAnim.setValue(0);
-  }, [entry]);
-
   const togglePlayPause = async () => {
     if (!videoRef.current) return;
 
@@ -47,6 +83,102 @@ export default function PostDetails({ route }) {
       await videoRef.current.playAsync();
     }
     setIsPlaying(!isPlaying);
+  };
+
+  /**
+   * Actual Supabase insertion for "up" vote
+   */
+  const voteUp = async () => {
+    try {
+      const userId = supabase.auth.currentUser?.id;
+      if (!userId) {
+        throw new Error("Authentication required");
+      }
+
+      const { error } = await supabase.from("votes").insert([
+        {
+          voterId: userId,
+          tournamentId: entry.tournamentId,
+          creatorId: entry.creatorId,
+          voteResult: "up",
+        },
+      ]);
+
+      if (error) throw error;
+
+      // After a successful vote, disable the buttons
+      setHasVoted(true);
+    } catch (err) {
+      console.error("Error voting up:", err);
+    }
+  };
+
+  /**
+   * Actual Supabase insertion for "down" vote
+   */
+  const voteDown = async () => {
+    try {
+      const userId = supabase.auth.currentUser?.id;
+      if (!userId) {
+        throw new Error("Authentication required");
+      }
+
+      const { error } = await supabase.from("votes").insert([
+        {
+          voterId: userId,
+          tournamentId: entry.tournamentId,
+          creatorId: entry.creatorId,
+          voteResult: "down",
+        },
+      ]);
+
+      if (error) throw error;
+
+      // After a successful vote, disable the buttons
+      setHasVoted(true);
+    } catch (err) {
+      console.error("Error voting down:", err);
+    }
+  };
+
+  /**
+   * Show an alert to confirm voteUp
+   */
+  const handleVoteUpPress = () => {
+    if (!hasVoted) {
+      Alert.alert(
+        "Confirm Vote",
+        "Are you sure you want to vote up?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Confirm",
+            onPress: voteUp, // Call the actual vote function
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
+  /**
+   * Show an alert to confirm voteDown
+   */
+  const handleVoteDownPress = () => {
+    if (!hasVoted) {
+      Alert.alert(
+        "Confirm Vote",
+        "Are you sure you want to vote down?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Confirm",
+            onPress: voteDown, // Call the actual vote function
+          },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   const MediaContent = () => {
@@ -93,10 +225,18 @@ export default function PostDetails({ route }) {
         </View>
       )}
 
+      {/* Optionally show a small text if user has voted */}
+      {hasVoted && (
+        <View style={styles.alreadyVotedContainer}>
+          <Text style={styles.alreadyVotedText}>You have already voted</Text>
+        </View>
+      )}
+
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
-          style={styles.voteButton}
-          onPress={() => console.log("Voted down")}
+          style={[styles.voteButton, hasVoted && styles.voteButtonDisabled]}
+          onPress={handleVoteDownPress}
+          disabled={hasVoted}
         >
           <Image
             style={styles.voteIcon}
@@ -105,8 +245,9 @@ export default function PostDetails({ route }) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.voteButton}
-          onPress={() => console.log("Voted up")}
+          style={[styles.voteButton, hasVoted && styles.voteButtonDisabled]}
+          onPress={handleVoteUpPress}
+          disabled={hasVoted}
         >
           <Image
             style={styles.voteIcon}
@@ -138,12 +279,6 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
   },
-  playPauseButton: {
-    position: "absolute",
-    zIndex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    borderRadius: 40,
-  },
   overlay: {
     position: "absolute",
     backgroundColor: "black",
@@ -172,9 +307,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
   },
+  voteButtonDisabled: {
+    opacity: 0.5, // visually indicate disabled
+  },
   voteIcon: {
     height: 70,
     width: 70,
     resizeMode: "contain",
+  },
+  alreadyVotedContainer: {
+    position: "absolute",
+    top: 100,
+    alignSelf: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  alreadyVotedText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });

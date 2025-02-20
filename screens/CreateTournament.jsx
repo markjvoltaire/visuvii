@@ -9,10 +9,38 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  Animated,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState, useCallback } from "react";
 import { supabase } from "../services/supabase";
+
+const CATEGORIES = [
+  "All",
+  "Funny",
+  "Sports",
+  "Music",
+  "Kids",
+  "Food",
+  "Educational",
+  "Tech",
+  "Outdoors",
+  "Art",
+  "Fitness",
+];
+
+const CATEGORY_EMOJIS = {
+  All: "🌟",
+  Funny: "😂",
+  Sports: "⚽",
+  Music: "🎵",
+  Kids: "🧸",
+  Food: "🍔",
+  Educational: "📚",
+  Tech: "💻",
+  Outdoors: "🏕️",
+  Art: "🎨",
+  Fitness: "💪",
+};
 
 const FormInput = ({ label, ...props }) => (
   <View style={styles.fieldContainer}>
@@ -20,6 +48,43 @@ const FormInput = ({ label, ...props }) => (
     <TextInput style={styles.input} placeholderTextColor="#94A3B8" {...props} />
   </View>
 );
+
+/**
+ * Custom dropdown component that displays a list of options when pressed.
+ */
+const FormDropdown = ({ label, selectedValue, onValueChange, options }) => {
+  const [showOptions, setShowOptions] = useState(false);
+
+  return (
+    <View style={styles.fieldContainer}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TouchableOpacity
+        style={styles.input}
+        onPress={() => setShowOptions(!showOptions)}
+      >
+        <Text style={selectedValue ? styles.inputText : styles.placeholderText}>
+          {selectedValue || "Select category"}
+        </Text>
+      </TouchableOpacity>
+      {showOptions && (
+        <View style={styles.dropdownOptions}>
+          {options.map((option, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.dropdownOption}
+              onPress={() => {
+                onValueChange(option);
+                setShowOptions(false);
+              }}
+            >
+              <Text style={styles.dropdownOptionText}>{option}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
 
 const ContentTypeToggle = ({ value, onToggle }) => {
   const handlePress = useCallback(() => {
@@ -79,6 +144,8 @@ export default function CreateTournament({ navigation }) {
     openTournament: "true",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const updateFormField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -89,7 +156,7 @@ export default function CreateTournament({ navigation }) {
       return false;
     }
     if (!formData.category.trim()) {
-      Alert.alert("Error", "Please enter a tournament category");
+      Alert.alert("Error", "Please select a tournament category");
       return false;
     }
     if (isNaN(formData.entryPrice) || parseFloat(formData.entryPrice) < 0) {
@@ -102,6 +169,7 @@ export default function CreateTournament({ navigation }) {
   const handleCreateTournament = async () => {
     if (!validateForm()) return;
 
+    setLoading(true);
     try {
       const userId = supabase.auth.currentUser?.id;
       if (!userId) throw new Error("Authentication required");
@@ -126,6 +194,8 @@ export default function CreateTournament({ navigation }) {
     } catch (error) {
       console.error("Tournament creation error:", error);
       Alert.alert("Error", "Failed to create tournament. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -154,11 +224,12 @@ export default function CreateTournament({ navigation }) {
               onChangeText={(value) => updateFormField("tournamentName", value)}
             />
 
-            <FormInput
+            {/* Replace the category TextInput with the custom dropdown */}
+            <FormDropdown
               label="Category"
-              placeholder="e.g., Gaming, Sports, Art"
-              value={formData.category}
-              onChangeText={(value) => updateFormField("category", value)}
+              selectedValue={formData.category}
+              onValueChange={(value) => updateFormField("category", value)}
+              options={CATEGORIES}
             />
 
             <View style={styles.row}>
@@ -195,8 +266,13 @@ export default function CreateTournament({ navigation }) {
           <TouchableOpacity
             style={styles.submitButton}
             onPress={handleCreateTournament}
+            disabled={loading}
           >
-            <Text style={styles.submitButtonText}>Create Tournament</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <Text style={styles.submitButtonText}>Create Tournament</Text>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -250,6 +326,28 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
     borderRadius: 12,
     padding: 16,
+  },
+  inputText: {
+    fontSize: 16,
+    color: "#1E293B",
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: "#94A3B8",
+  },
+  dropdownOptions: {
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    backgroundColor: "#F8FAFC",
+    marginTop: 5,
+  },
+  dropdownOption: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+  dropdownOptionText: {
     fontSize: 16,
     color: "#1E293B",
   },
@@ -278,7 +376,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  // New styles for the toggle
+  // Styles for the toggle component
   toggleContainer: {
     flexDirection: "row",
     backgroundColor: "#F8FAFC",

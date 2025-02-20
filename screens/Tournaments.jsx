@@ -12,8 +12,23 @@ import {
   RefreshControl,
 } from "react-native";
 import { supabase } from "../services/supabase";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const { width } = Dimensions.get("window");
+
+const CATEGORY_EMOJIS = {
+  All: "🌟",
+  Funny: "😂",
+  Sports: "⚽",
+  Music: "🎵",
+  Kids: "🧸",
+  Food: "🍔",
+  Educational: "📚",
+  Tech: "💻",
+  Outdoors: "🏕️",
+  Art: "🎨",
+  Fitness: "💪",
+};
 
 const fetchTournaments = async () => {
   try {
@@ -63,6 +78,13 @@ const TournamentCard = ({ tournament, onPress }) => {
       <Text style={styles.tournamentName}>
         {tournament.tournamentName || "Unnamed Tournament"}
       </Text>
+
+      <View style={styles.categoryContainer}>
+        <Text style={styles.categoryText}>
+          {CATEGORY_EMOJIS[tournament.category] || "🌟"}{" "}
+          {tournament.category || "No Category"}
+        </Text>
+      </View>
 
       <View style={styles.cardFooter}>
         <View style={styles.entriesContainer}>
@@ -285,5 +307,18 @@ const styles = StyleSheet.create({
   },
   closedButtonText: {
     color: "#F3F4F6",
+  },
+  categoryContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  categoryIcon: {
+    marginRight: 6,
+  },
+  categoryText: {
+    fontSize: 14,
+    color: "#6366F1",
+    fontWeight: "600",
   },
 });
