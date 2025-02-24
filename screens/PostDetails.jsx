@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   StyleSheet,
   Animated,
@@ -13,176 +13,191 @@ import {
 import { Video } from "expo-av";
 import { supabase } from "../services/supabase";
 
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+
 export default function PostDetails({ route }) {
   const { entry } = route.params;
+
+  // State for media loading, votes, and tournament
   const [isLoading, setIsLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
+  const [upVotes, setUpVotes] = useState(0);
+  const [downVotes, setDownVotes] = useState(0);
+  const [tournament, setTournament] = useState(null);
+  const [tournamentEntries, setTournamentEntries] = useState([]);
+
+  // New state: Creator profile from the "profiles" table
+  const [creatorProfile, setCreatorProfile] = useState(null);
+
+  console.log("creatorProfile :>> ", creatorProfile);
 
   const videoRef = useRef(null);
-
-  const screenWidth = Dimensions.get("window").width;
-  const screenHeight = Dimensions.get("window").height;
-
-  // For fade-in animation on media
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    // Reset states on entry change
-    setIsLoading(true);
-    fadeAnim.setValue(0);
-    setHasVoted(false);
-
-    // Check if user has already voted for this entry
-    checkIfUserHasVoted();
-  }, [entry]);
-
-  const checkIfUserHasVoted = async () => {
-    try {
-      const userId = supabase.auth.currentUser?.id;
-      if (!userId) return;
-
-      // Fetch any existing vote for this user/entry combination
-      const { data, error } = await supabase
-        .from("votes")
-        .select("*")
-        .eq("voterId", userId)
-        .eq("tournamentId", entry.tournamentId)
-        .eq("creatorId", entry.creatorId);
-
-      if (error) throw error;
-
-      // If data array is not empty, user has already voted
-      if (data && data.length > 0) {
-        setHasVoted(true);
-      }
-    } catch (err) {
-      console.error("Error checking vote:", err);
-    }
-  };
-
-  const handleMediaLoad = () => {
-    setIsLoading(false);
-    startFadeAnimation();
-  };
-
-  const startFadeAnimation = () => {
+  // Fade in animation for media
+  const startFadeAnimation = useCallback(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 600,
       useNativeDriver: true,
     }).start();
-  };
+  }, [fadeAnim]);
 
-  const togglePlayPause = async () => {
-    if (!videoRef.current) return;
-
-    if (isPlaying) {
-      await videoRef.current.pauseAsync();
-    } else {
-      await videoRef.current.playAsync();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  /**
-   * Actual Supabase insertion for "up" vote
-   */
-  const voteUp = async () => {
+  // Fetch tournament details
+  const fetchTournament = useCallback(async (tournamentId) => {
     try {
-      const userId = supabase.auth.currentUser?.id;
-      if (!userId) {
-        throw new Error("Authentication required");
-      }
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select("*")
+        .eq("tournamentId", tournamentId)
+        .single();
+      if (error) throw error;
+      setTournament(data);
+    } catch (err) {
+      console.error("Error fetching tournament:", err);
+    }
+  }, []);
 
-      const { error } = await supabase.from("votes").insert([
-        {
-          voterId: userId,
-          tournamentId: entry.tournamentId,
-          creatorId: entry.creatorId,
-          voteResult: "up",
-        },
-      ]);
+  // Fetch all entries with the same tournamentId
+  const fetchTournamentEntries = useCallback(async (tournamentId) => {
+    try {
+      const { data, error } = await supabase
+        .from("entries")
+        .select("*")
+        .eq("tournamentId", tournamentId);
 
       if (error) throw error;
 
-      // After a successful vote, disable the buttons
-      setHasVoted(true);
+      setTournamentEntries(data || []);
     } catch (err) {
-      console.error("Error voting up:", err);
+      console.error("Error fetching tournament entries:", err);
+      setTournamentEntries([]);
     }
-  };
+  }, []);
 
-  /**
-   * Actual Supabase insertion for "down" vote
-   */
-  const voteDown = async () => {
+  // Fetch vote counts for the tournament
+  const fetchVoteCounts = useCallback(async (tournamentId) => {
+    try {
+      const { data, error } = await supabase
+        .from("votes")
+        .select("*")
+        .eq("tournamentId", tournamentId);
+      if (error) throw error;
+      if (data) {
+        setUpVotes(data.filter((v) => v.voteResult === "up").length);
+        setDownVotes(data.filter((v) => v.voteResult === "down").length);
+      }
+    } catch (err) {
+      console.error("Error fetching vote counts:", err);
+    }
+  }, []);
+
+  // Check if the user has already voted
+  const checkIfUserHasVoted = useCallback(async (tournamentId, creatorId) => {
     try {
       const userId = supabase.auth.currentUser?.id;
-      if (!userId) {
-        throw new Error("Authentication required");
-      }
-
-      const { error } = await supabase.from("votes").insert([
-        {
-          voterId: userId,
-          tournamentId: entry.tournamentId,
-          creatorId: entry.creatorId,
-          voteResult: "down",
-        },
-      ]);
-
+      if (!userId) return;
+      const { data, error } = await supabase
+        .from("votes")
+        .select("*")
+        .eq("voterId", userId)
+        .eq("tournamentId", tournamentId)
+        .eq("creatorId", creatorId);
       if (error) throw error;
-
-      // After a successful vote, disable the buttons
-      setHasVoted(true);
+      setHasVoted(data && data.length > 0);
     } catch (err) {
-      console.error("Error voting down:", err);
+      console.error("Error checking vote:", err);
     }
-  };
+  }, []);
 
-  /**
-   * Show an alert to confirm voteUp
-   */
-  const handleVoteUpPress = () => {
-    if (!hasVoted) {
-      Alert.alert(
-        "Confirm Vote",
-        "Are you sure you want to vote up?",
-        [
-          { text: "Cancel", style: "cancel" },
+  // Fetch the creator's profile based on creatorId from the profiles table
+  const fetchCreatorProfile = useCallback(async (creatorId) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", creatorId) // Updated column name
+        .single();
+      if (error) throw error;
+      setCreatorProfile(data);
+    } catch (err) {
+      console.error("Error fetching creator profile:", err);
+    }
+  }, []);
+
+  // Load data when the entry changes
+  useEffect(() => {
+    if (!entry) return;
+    setIsLoading(true);
+    fadeAnim.setValue(0);
+    fetchTournament(entry.tournamentId);
+    fetchVoteCounts(entry.tournamentId);
+    checkIfUserHasVoted(entry.tournamentId, entry.creatorId);
+    fetchCreatorProfile(entry.creatorId);
+    fetchTournamentEntries(entry.tournamentId);
+    setIsLoading(false);
+  }, [
+    entry,
+    fadeAnim,
+    fetchTournament,
+    fetchVoteCounts,
+    checkIfUserHasVoted,
+    fetchCreatorProfile,
+    fetchTournamentEntries,
+  ]);
+
+  // Media load handler
+  const handleMediaLoad = useCallback(() => {
+    setIsLoading(false);
+    startFadeAnimation();
+  }, [startFadeAnimation]);
+
+  // Vote function
+  const handleVote = useCallback(
+    async (voteResult) => {
+      try {
+        const userId = supabase.auth.currentUser?.id;
+        if (!userId) throw new Error("Authentication required");
+        const { error } = await supabase.from("votes").insert([
           {
-            text: "Confirm",
-            onPress: voteUp, // Call the actual vote function
+            voterId: userId,
+            tournamentId: entry.tournamentId,
+            creatorId: entry.creatorId,
+            voteResult,
           },
-        ],
-        { cancelable: true }
-      );
-    }
-  };
+        ]);
+        if (error) throw error;
+        voteResult === "up"
+          ? setUpVotes((prev) => prev + 1)
+          : setDownVotes((prev) => prev + 1);
+        setHasVoted(true);
+      } catch (err) {
+        console.error(`Error voting ${voteResult}:`, err);
+      }
+    },
+    [entry]
+  );
 
-  /**
-   * Show an alert to confirm voteDown
-   */
-  const handleVoteDownPress = () => {
-    if (!hasVoted) {
-      Alert.alert(
-        "Confirm Vote",
-        "Are you sure you want to vote down?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Confirm",
-            onPress: voteDown, // Call the actual vote function
-          },
-        ],
-        { cancelable: true }
-      );
-    }
-  };
+  const confirmVote = useCallback(
+    (voteResult) => {
+      if (!hasVoted) {
+        Alert.alert(
+          "Confirm Vote",
+          `Are you sure you want to vote ${voteResult}?`,
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Confirm", onPress: () => handleVote(voteResult) },
+          ],
+          { cancelable: true }
+        );
+      }
+    },
+    [hasVoted, handleVote]
+  );
 
+  // Media component for image or video
   const MediaContent = () => {
-    if (entry.mediaType === "video") {
+    if (entry?.mediaType === "video") {
       return (
         <View style={styles.videoContainer}>
           <Video
@@ -190,22 +205,18 @@ export default function PostDetails({ route }) {
             source={{ uri: entry.media }}
             style={styles.backgroundVideo}
             resizeMode="contain"
-            shouldPlay={true}
-            isLooping={true}
+            shouldPlay
+            isLooping
             onLoadStart={() => setIsLoading(true)}
-            onLoad={() => {
-              setIsLoading(false);
-              startFadeAnimation();
-            }}
+            onLoad={handleMediaLoad}
           />
         </View>
       );
     }
-
     return (
       <Animated.Image
         style={[styles.backgroundImage, { opacity: fadeAnim }]}
-        source={{ uri: entry.media }}
+        source={{ uri: entry?.media }}
         onLoad={handleMediaLoad}
       />
     );
@@ -214,46 +225,80 @@ export default function PostDetails({ route }) {
   return (
     <View style={styles.container}>
       <MediaContent />
-
       <View
         style={[styles.overlay, { height: screenHeight, width: screenWidth }]}
       />
-
       {isLoading && (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#FFFFFF" />
         </View>
       )}
 
-      {/* Optionally show a small text if user has voted */}
-      {hasVoted && (
-        <View style={styles.alreadyVotedContainer}>
-          <Text style={styles.alreadyVotedText}>You have already voted</Text>
+      {/* Bottom info and control bar */}
+      <View style={styles.bottomContainer}>
+        {/* User profile section */}
+        {hasVoted && creatorProfile && (
+          <View style={styles.userInfoContainer}>
+            <View style={styles.userLeftContainer}>
+              <Image
+                source={{ uri: creatorProfile.profileImage }}
+                style={styles.profileImage}
+              />
+              <View style={styles.userTextContainer}>
+                <Text style={styles.usernameText}>
+                  {creatorProfile.username}
+                </Text>
+                {tournament && (
+                  <Text style={styles.subInfoText}>
+                    Total Pot: ${tournament.prize || "0"}
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            {/* Users joined count on right side */}
+            {tournamentEntries && (
+              <View style={styles.joinedCountContainer}>
+                <Text style={styles.joinedCountText}>
+                  {tournamentEntries.length} / {tournament?.entriesSize || 0}{" "}
+                  joined
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Vote buttons */}
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity
+            style={[styles.voteButton, styles.upCircle]}
+            onPress={() => confirmVote("up")}
+            disabled={hasVoted}
+          >
+            {!hasVoted ? (
+              <Image
+                style={styles.voteIcon}
+                source={require("../assets/voteUp.png")}
+              />
+            ) : (
+              <Text style={styles.voteCountText}>{upVotes}</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.voteButton, styles.downCircle]}
+            onPress={() => confirmVote("down")}
+            disabled={hasVoted}
+          >
+            {!hasVoted ? (
+              <Image
+                style={styles.voteIcon}
+                source={require("../assets/voteDown.png")}
+              />
+            ) : (
+              <Text style={styles.voteCountText}>{downVotes}</Text>
+            )}
+          </TouchableOpacity>
         </View>
-      )}
-
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={[styles.voteButton, hasVoted && styles.voteButtonDisabled]}
-          onPress={handleVoteDownPress}
-          disabled={hasVoted}
-        >
-          <Image
-            style={styles.voteIcon}
-            source={require("../assets/voteDown.png")}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.voteButton, hasVoted && styles.voteButtonDisabled]}
-          onPress={handleVoteUpPress}
-          disabled={hasVoted}
-        >
-          <Image
-            style={styles.voteIcon}
-            source={require("../assets/voteUp.png")}
-          />
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -276,8 +321,8 @@ const styles = StyleSheet.create({
   },
   backgroundVideo: {
     flex: 1,
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
+    width: screenWidth,
+    height: screenHeight,
   },
   overlay: {
     position: "absolute",
@@ -293,39 +338,77 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  buttonsContainer: {
+  bottomContainer: {
     position: "absolute",
-    bottom: 50,
+    bottom: 0,
     left: 0,
     right: 0,
+    padding: 20,
+    paddingBottom: 50, // Add extra padding for bottom safe area
+  },
+  userInfoContainer: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 40,
+    marginBottom: 20,
+  },
+  userLeftContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: "#fff",
+  },
+  userTextContainer: {
+    flexDirection: "column",
+  },
+  usernameText: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  subInfoText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  joinedCountContainer: {
+    alignItems: "flex-end",
+  },
+  joinedCountText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between", // Changed from space-evenly to match the image
+    marginTop: 10,
   },
   voteButton: {
     justifyContent: "center",
     alignItems: "center",
-    padding: 10,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
   },
-  voteButtonDisabled: {
-    opacity: 0.5, // visually indicate disabled
+  upCircle: {
+    backgroundColor: "#00cc66",
+  },
+  downCircle: {
+    backgroundColor: "#ff3333",
   },
   voteIcon: {
-    height: 70,
-    width: 70,
+    width: 40,
+    height: 40,
     resizeMode: "contain",
   },
-  alreadyVotedContainer: {
-    position: "absolute",
-    top: 100,
-    alignSelf: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-  alreadyVotedText: {
+  voteCountText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
