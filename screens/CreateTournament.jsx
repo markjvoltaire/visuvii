@@ -28,19 +28,7 @@ const CATEGORIES = [
   "Fitness",
 ];
 
-const CATEGORY_EMOJIS = {
-  All: "🌟",
-  Funny: "😂",
-  Sports: "⚽",
-  Music: "🎵",
-  Kids: "🧸",
-  Food: "🍔",
-  Educational: "📚",
-  Tech: "💻",
-  Outdoors: "🏕️",
-  Art: "🎨",
-  Fitness: "💪",
-};
+
 
 const FormInput = ({ label, ...props }) => (
   <View style={styles.fieldContainer}>

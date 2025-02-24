@@ -8,29 +8,99 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-const payouts = [
-  { id: "1", place: "1st", prize: "$20,000" },
-  { id: "2", place: "2nd", prize: "$15,000" },
-  { id: "3", place: "3rd", prize: "$10,000" },
-  { id: "4", place: "4th", prize: "$5,000" },
-  { id: "5", place: "5th", prize: "Entry Fee Return" },
-  { id: "6", place: "6th", prize: "Entry Fee Return" },
-];
+// Example function to calculate payouts
+// Adjust to match your existing code.
+const calculatePayouts = (entriesSize, entryPrice) => {
+  const totalPot = entriesSize * entryPrice;
+  const prizePool = totalPot * 0.9; // 90% of total pot
+  const winnersCount = Math.ceil(entriesSize * 0.25);
+  let payouts = [];
 
-const PayoutItem = ({ place, prize }) => (
-  <View style={styles.payoutRow}>
-    <View style={styles.rankContainer}>
-      <Text style={styles.placeText}>{place}</Text>
-    </View>
-    <View style={styles.prizeContainer}>
-      <Text style={styles.prizeText}>{prize}</Text>
-      <Text style={styles.prizeLabel}>Prize</Text>
-    </View>
-  </View>
-);
+  if (winnersCount <= 10) {
+    // For small tournaments, we scale percentages
+    const idealArray = [25, 15, 10, 7, 5, 4, 4, 4, 4, 4]; // sums to 79
+    const percentages = idealArray.slice(0, winnersCount);
+    const sumPercent = percentages.reduce((acc, curr) => acc + curr, 0);
 
+    payouts = percentages.map((p, index) => {
+      const fraction = p / sumPercent; // e.g., 25 / 79 ≈ 0.316
+      return {
+        place: getOrdinal(index + 1),
+        prize: `$${(prizePool * fraction).toFixed(2)}`,
+        // fraction of the total prizePool (e.g. 0.316)
+        percentage: fraction,
+      };
+    });
+  } else {
+    // 1st Place
+    payouts.push({
+      place: getOrdinal(1),
+      prize: `$${(prizePool * 0.25).toFixed(2)}`,
+      percentage: 0.25, // 25%
+    });
+    // 2nd Place
+    payouts.push({
+      place: getOrdinal(2),
+      prize: `$${(prizePool * 0.15).toFixed(2)}`,
+      percentage: 0.15, // 15%
+    });
+    // 3rd Place
+    payouts.push({
+      place: getOrdinal(3),
+      prize: `$${(prizePool * 0.1).toFixed(2)}`,
+      percentage: 0.1, // 10%
+    });
+    // 4th Place
+    payouts.push({
+      place: getOrdinal(4),
+      prize: `$${(prizePool * 0.07).toFixed(2)}`,
+      percentage: 0.07, // 7%
+    });
+    // 5th Place
+    payouts.push({
+      place: getOrdinal(5),
+      prize: `$${(prizePool * 0.05).toFixed(2)}`,
+      percentage: 0.05, // 5%
+    });
+
+    // 6th-10th Places: each 4%
+    for (let i = 6; i <= Math.min(10, winnersCount); i++) {
+      payouts.push({
+        place: getOrdinal(i),
+        prize: `$${(prizePool * 0.04).toFixed(2)}`,
+        percentage: 0.04, // 4%
+      });
+    }
+
+    // 11th+ Places: share 18% evenly
+    if (winnersCount > 10) {
+      const remainingWinners = winnersCount - 10;
+      const perWinner = (prizePool * 0.18) / remainingWinners;
+      const fraction = 0.18 / remainingWinners; // each person's fraction of the entire pool
+      for (let i = 11; i <= winnersCount; i++) {
+        payouts.push({
+          place: getOrdinal(i),
+          prize: `$${perWinner.toFixed(2)}`,
+          percentage: fraction,
+        });
+      }
+    }
+  }
+  return payouts;
+};
+
+// Helper to get ordinal strings like "1st", "2nd", etc.
+function getOrdinal(n) {
+  const s = ["th", "st", "nd", "rd"],
+    v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
 export default function TournamentDetails({ navigation, route }) {
   const { item } = route.params;
+  console.log("item :>> ", item);
+
+  // Calculate dynamic payouts using the tournament data from item
+  const dynamicPayouts = calculatePayouts(item.entriesSize, item.entryPrice);
 
   const handleEnterTournament = () => {
     // Navigate to different screens based on mediaType
@@ -40,7 +110,25 @@ export default function TournamentDetails({ navigation, route }) {
   };
 
   const renderItem = ({ item }) => (
-    <PayoutItem place={item.place} prize={item.prize} />
+    <View style={styles.payoutRow}>
+      <View style={styles.rankContainer}>
+        <Text style={styles.placeText}>{item.place}</Text>
+      </View>
+      <View style={styles.prizeContainer}>
+        <Text style={styles.prizeText}>{item.prize}</Text>
+        <Text style={styles.prizeLabel}>Prize</Text>
+
+        {/* 
+          ONLY show this extra line if it's the "1st" place row.
+          We use the 'percentage' field (0.25 = 25%) to show the exact fraction.
+        */}
+        {item.place === "1st" && item.percentage && (
+          <Text style={styles.firstPlaceNote}>
+            {(item.percentage * 100).toFixed(2)}% of tournament fulfillment
+          </Text>
+        )}
+      </View>
+    </View>
   );
 
   return (
@@ -48,12 +136,16 @@ export default function TournamentDetails({ navigation, route }) {
       <View style={styles.header}>
         <Text style={styles.title}>Prize Pool</Text>
         <Text style={styles.subtitle}>Tournament Payouts</Text>
+
+        <Text style={styles.note}>
+          prizes listed are based on 100% tournament fulfillment
+        </Text>
       </View>
 
       <FlatList
-        data={payouts}
+        data={dynamicPayouts}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => index.toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
       />
@@ -74,6 +166,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
+  },
+  note: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#6B7280", // Red text; adjust as desired
+  },
+  firstPlaceNote: {
+    fontSize: 14,
+    color: "#EF4444", // Red text for emphasis
+    marginTop: 2,
   },
   header: {
     backgroundColor: "#FFF",

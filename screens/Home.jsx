@@ -89,8 +89,6 @@ export default function Home({ navigation }) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [error, setError] = useState(null);
 
-  console.log("entries:>> ", entries);
-
   const numColumns = 3;
   const spacing = 2;
   const imageSize =

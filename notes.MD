@@ -1,0 +1,1 @@
+show math based on full capacity 

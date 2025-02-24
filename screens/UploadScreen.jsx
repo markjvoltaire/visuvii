@@ -16,9 +16,6 @@ export default function ContestEntryScreen({ route }) {
   const mediaDetails = route.params.media;
   const tournamentDetails = route.params.tournamentDetails;
 
-  console.log("mediaDetails", mediaDetails);
-  console.log("tournamentDetails", tournamentDetails);
-
   const newFile = {
     uri: mediaDetails.uri,
     type: `image/${mediaDetails.type.split(".").pop()}`,

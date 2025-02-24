@@ -79,7 +79,6 @@ export default function Auth() {
         .eq("user_id", supabase.auth.currentUser.id);
 
       if (error) throw error;
-      console.log("Profile deleted successfully");
     } catch (error) {
       console.error("Error deleting profile:", error);
     }
