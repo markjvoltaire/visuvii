@@ -21,6 +21,9 @@ import UploadMedia from "../screens/UploadMedia";
 import UploadScreen from "../screens/UploadScreen";
 import UploadImage from "../screens/UploadImage";
 import UploadVideo from "../screens/UploadVideo";
+import Rules from "../screens/Rules";
+import Terms from "../screens/Terms";
+import Support from "../screens/Support";
 
 export default function Auth() {
   const handleSignOut = async () => {
@@ -115,6 +118,58 @@ export default function Auth() {
             headerTransparent: true,
             headerTitleStyle: {},
             headerTintColor: "white",
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
+
+  const ProfileStack = () => {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="UserProfile" component={UserProfile} />
+        <Stack.Screen
+          name="Rules and Scoring"
+          component={Rules}
+          options={{
+            headerShown: true,
+            headerBackTitle: "Go back",
+            headerTitle: "",
+            headerTransparent: true,
+            headerTitleStyle: {
+              color: "black",
+            },
+            headerTintColor: "black",
+          }}
+        />
+
+        <Stack.Screen
+          name="Terms and Policies"
+          component={Terms}
+          options={{
+            headerShown: true,
+            headerBackTitle: "Go back",
+            headerTitle: "",
+            headerTransparent: true,
+            headerTitleStyle: {
+              color: "black",
+            },
+            headerTintColor: "black",
+          }}
+        />
+
+        <Stack.Screen
+          name="Help & Support"
+          component={Support}
+          options={{
+            headerShown: true,
+            headerBackTitle: "Go back",
+            headerTitle: "",
+            headerTransparent: true,
+            headerTitleStyle: {
+              color: "black",
+            },
+            headerTintColor: "black",
           }}
         />
       </Stack.Navigator>
@@ -291,7 +346,7 @@ export default function Auth() {
             ),
         }}
         name="ProfileStack"
-        component={UserProfile}
+        component={ProfileStack}
       />
     </Tab.Navigator>
   );

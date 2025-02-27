@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { supabase } from "../services/supabase";
 
-export default function UserProfile() {
+export default function UserProfile({ navigation }) {
   const signOutUser = async () => {
     await supabase.auth.signOut();
   };
@@ -59,7 +59,11 @@ export default function UserProfile() {
             "Terms and Policies",
             "Rules and Scoring",
           ].map((item, index) => (
-            <TouchableOpacity key={index} style={styles.menuItem}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate(item)}
+              key={index}
+              style={styles.menuItem}
+            >
               <Text style={styles.menuItemText}>{item}</Text>
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>
