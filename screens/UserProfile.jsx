@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   StyleSheet,
@@ -7,13 +7,76 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { supabase } from "../services/supabase";
 
 export default function UserProfile({ navigation }) {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  console.log("profile :>> ", profile);
+
+  // Get current user ID
+  const userId = supabase.auth.currentUser?.id;
+
+  // Fetch user profile on component mount
+  useEffect(() => {
+    if (userId) {
+      fetchUserProfile(userId);
+    } else {
+      setLoading(false);
+      setError("User not logged in");
+    }
+  }, [userId]);
+
+  const fetchUserProfile = async (userId) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) throw error;
+
+      setProfile(data);
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+      setError("Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOutUser = async () => {
     await supabase.auth.signOut();
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#6366F1" />
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => userId && fetchUserProfile(userId)}
+        >
+          <Text style={styles.retryText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -25,14 +88,20 @@ export default function UserProfile({ navigation }) {
         <View style={styles.profileSection}>
           <View style={styles.imageContainer}>
             <Image
-              source={require("../assets/pic2.jpg")}
+              source={
+                profile?.profileImage
+                  ? { uri: profile.profileImage }
+                  : require("../assets/pic2.jpg")
+              }
               style={styles.profileImage}
             />
           </View>
-          <Text style={styles.userName}>John Apple</Text>
+          <Text style={styles.userName}>{profile?.username || "User"}</Text>
           <View style={styles.balanceCard}>
             <Text style={styles.balanceLabel}>Available Balance</Text>
-            <Text style={styles.balanceAmount}>$35.00</Text>
+            <Text style={styles.balanceAmount}>
+              ${profile?.balance?.toFixed(2) || "0.00"}
+            </Text>
             <TouchableOpacity style={styles.withdrawButton}>
               <Text style={styles.withdrawText}>Withdraw Funds</Text>
             </TouchableOpacity>
@@ -82,6 +151,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#6366F1",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#EF4444",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  retryButton: {
+    backgroundColor: "#6366F1",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: "white",
+    fontWeight: "600",
   },
   header: {
     padding: 20,
